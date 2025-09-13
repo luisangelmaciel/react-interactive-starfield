@@ -4,8 +4,6 @@
 
 React Moving Stars es una aplicación web inmersiva y visualmente cautivadora que recrea el efecto de "Estrellas en Movimiento en el Universo" utilizando React y Tailwind CSS. La aplicación ofrece tres experiencias visuales distintas: un campo de estrellas dinámico, una vista serena de la Vía Láctea con efecto de paralaje y una escena animada caprichosa. El objetivo principal es proporcionar una experiencia de pantalla completa sin interrupciones, sin barras de desplazamiento, que sea a la vez interactiva y estéticamente agradable.
 
-![Texto alternativo de la imagen](https://2025-contenido.vercel.app/09/react-interactive-starfield.png)
-
 ## 2. Características
 
 - **Selector de Vistas**: Navega sin problemas entre tres modos visuales distintos.
