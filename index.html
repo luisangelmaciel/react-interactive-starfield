@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Moving Stars</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src='https://kit.fontawesome.com/1d9115e34a.js'></script>
+    <style>
+      /* Enforce no scrollbars as requested by the user */
+      html, body {
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        height: 100%;
+        width: 100%;
+      }
+      
+      #root {
+        height: 100%;
+        width: 100%;
+      }
+
+      /* Animation for Moving Stars */
+      @keyframes move-star {
+        0% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 0;
+        }
+        20% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--end-x, 0vw), var(--end-y, 0vh)) scale(3);
+          opacity: 0;
+        }
+      }
+      .animate-star-motion {
+        animation-name: move-star;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+      }
+
+      /* Animation for star twinkle */
+      @keyframes twinkle {
+        0%, 100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .animate-star-twinkle {
+        animation-name: twinkle;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+      }
+
+      /* Styles for Milky Way View */
+      .frame {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        left: calc(50% - 50vw);
+        top: calc(50% - 50vh);
+        overflow: hidden;
+      }
+
+      .frame .sky,
+      .frame .horizon {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+      }
+
+      .frame .horizon {
+        background: linear-gradient(to top, #ffa500 -100%, #0a2342 20%, rgba(0, 0, 0, 0) 60%);
+        opacity: 0.9;
+      }
+
+      .frame .sky {
+        background: black;
+      }
+
+      .frame .sky .star,
+      .frame .sky .milky-way-star,
+      .frame .sky .milky-way-super-star {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        border-radius: 1px;
+        background: #fff;
+      }
+      
+      .frame .sky .star:nth-child(1){left:59.1%;bottom:19.2%;opacity:0.48;box-shadow:0 0 6px 1px rgba(255,255,255,0.48)}
+      .frame .sky .star:nth-child(2){left:90.4%;bottom:12.9%;opacity:0.73;box-shadow:0 0 6px 1px rgba(255,255,255,0.73)}
+      .frame .sky .star:nth-child(3){left:60%;bottom:50.9%;opacity:0.88;box-shadow:0 0 6px 1px rgba(255,255,255,0.88)}
+      .frame .sky .star:nth-child(4){left:1.8%;bottom:4.6%;opacity:0.78;box-shadow:0 0 6px 1px rgba(255,255,255,0.78)}
+      .frame .sky .star:nth-child(5){left:17.5%;bottom:85.9%;opacity:0.84;box-shadow:0 0 6px 1px rgba(255,255,255,0.84)}
+      /* ... Many more star styles ... */
+      .frame .sky .star:nth-child(842){left:52.9%;bottom:62.8%;opacity:0.39;box-shadow:0 0 6px 1px rgba(255,255,255,0.39)}
+
+      .frame .sky .milky-way {
+        position: absolute;
+        width: 125px;
+        height: 130%;
+        left: 50%;
+        top: -15%;
+      }
+
+      .frame .sky .milky-way .milky-way-star:nth-child(1){top:25.1%;left:27.4%;opacity:0.846;box-shadow:0 0 12px 2px rgba(255,255,255,0.846),0 0 24px 12px rgba(10,35,66,0.846)}
+      .frame .sky .milky-way .milky-way-star:nth-child(2){top:93.2%;left:102.7%;opacity:0.093;box-shadow:0 0 12px 2px rgba(255,255,255,0.093),0 0 24px 12px rgba(10,35,66,0.093)}
+      /* ... Many more milky-way-star styles ... */
+      .frame .sky .milky-way .milky-way-star:nth-child(880){top:61.1%;bottom:64.1%;opacity:0.56;box-shadow:0 0 6px 1px rgba(255,255,255,0.56)}
+      
+      .frame .sky .milky-way .milky-way-super-star.pink{box-shadow:0 0 24px 6px pink}
+      .frame .sky .milky-way .milky-way-super-star.hotpink{box-shadow:0 0 36px 8px hotpink}
+      .frame .sky .milky-way .milky-way-super-star.purple{box-shadow:0 0 42px 12px purple}
+      .frame .sky .milky-way .milky-way-super-star:nth-child(1){top:22.4%;left:83.2%;opacity:0.288}
+      .frame .sky .milky-way .milky-way-super-star:nth-child(2){top:66.9%;left:80.2%;opacity:0.318}
+      /* ... Many more milky-way-super-star styles ... */
+      .frame .sky .milky-way .milky-way-super-star:nth-child(45){top:46.8%;left:23.4%;opacity:0.886}
+
+      /* Animated Nebulae Styles */
+      @keyframes nebula-drift {
+        0% {
+          transform: scale(1) rotate(0deg);
+          opacity: 0.3;
+        }
+        50% {
+          transform: scale(1.15) rotate(15deg);
+          opacity: 0.5;
+        }
+        100% {
+          transform: scale(1) rotate(0deg);
+          opacity: 0.3;
+        }
+      }
+
+      .nebula {
+        position: absolute;
+        border-radius: 50%;
+        mix-blend-mode: screen;
+        filter: blur(60px);
+        animation-name: nebula-drift;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+      }
+
+      .nebula-1 {
+        width: 60vw;
+        height: 60vw;
+        top: 10vh;
+        left: -10vw;
+        background: radial-gradient(ellipse at center, rgba(224, 78, 202, 0.4) 0%, rgba(138, 43, 226, 0) 70%);
+        animation-duration: 45s;
+      }
+      
+      .nebula-2 {
+        width: 50vw;
+        height: 50vw;
+        bottom: 5vh;
+        right: -5vw;
+        background: radial-gradient(ellipse at center, rgba(20, 190, 240, 0.4) 0%, rgba(20, 190, 240, 0) 70%);
+        animation-duration: 35s;
+        animation-delay: -10s;
+      }
+
+
+      /* Styles for RuPaul View */
+      .rupaul-container {
+        width: 100%;
+        height: 100%;
+        background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/191814/seamless-space.png);
+        background-color: black;
+        margin: 0;
+        overflow: hidden;
+        animation: background-scroll 100s linear infinite;
+        position: relative;
+      }
+
+      @keyframes background-scroll {
+        from {
+          background-position-x: -1000%;
+        }
+      }
+
+      .astronaut {
+        position: absolute;
+        display: inline-block;
+        transition: 4s;
+        cursor: pointer;
+        z-index: 2000;
+      }
+
+      .astronaut img {
+        position: absolute;
+        width: 150px;
+        height: 389px;
+        -webkit-animation: spin 10s linear infinite;
+        -moz-animation: spin 10s linear infinite;
+        animation: spin 10s linear infinite;
+      }
+
+      @-moz-keyframes spin {
+        100% { -moz-transform: rotate(360deg); }
+      }
+      @-webkit-keyframes spin {
+        100% { -webkit-transform: rotate(360deg); }
+      }
+      @keyframes spin {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+
+      .x {
+        -webkit-animation: x 20s linear infinite alternate;
+        animation: x 20s linear infinite alternate;
+      }
+
+      .y {
+        -webkit-animation: y 10s linear infinite alternate;
+        animation: y 10s linear infinite alternate;
+      }
+
+      @-webkit-keyframes x {
+        100% {
+          -webkit-transform: translateX(calc(100vw - 200px));
+          transform: translateX(calc(100vw - 300px));
+        }
+      }
+      @keyframes x {
+        100% {
+          -webkit-transform: translateX(calc(100vw - 200px));
+          transform: translateX(calc(100vw - 300px));
+        }
+      }
+      @-webkit-keyframes y {
+        100% {
+          -webkit-transform: translateY(calc(100vh - 300px));
+          transform: translateY(calc(100vh - 300px));
+        }
+      }
+      @keyframes y {
+        100% {
+          -webkit-transform: translateY(calc(100vh - 300px));
+          transform: translateY(calc(100vh - 300px));
+        }
+      }
+
+      .black-hole {
+        width: 80%;
+        height: 80%;
+        margin: auto;
+        position: absolute;
+        top: 0; left: 0; bottom: 0; right: 0;
+        background-color: rgba(0, 0, 0, 0.75);
+        border-radius: 50%;
+        z-index: 1;
+        box-shadow: 0 0 10px #483e51, 0 0 20px #483e51, 0 0 30px #483e51, 0 0 40px #483e51, 0 0 50px #483e51, 0 0 60px #483e51, 0 0 100px #483e51, 0 0 150px #483e51;
+        -webkit-animation: pulse 3s linear infinite;
+        animation: pulse 3s linear infinite;
+      }
+
+      @keyframes pulse {
+        0% { opacity: 0; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.1); }
+        100% { opacity: 0; transform: scale(1.2); }
+      }
+      @-webkit-keyframes pulse {
+        0% { opacity: 0; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.2); }
+        100% { opacity: 0; transform: scale(1.4); }
+      }
+
+      @media (max-width: 1024px) {
+        .astronaut img {
+          width: 90px;
+          height: 233px;
+        }
+      }
+      @media (min-width: 1025px) {
+        .astronaut img {
+          width: 150px;
+          height: 389px;
+        }
+      }
+
+      /* Thumbnail Preview Styles */
+      .thumbnail-moving {
+        background-color: black;
+        background-image:
+          radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+          radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+          radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+          radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+        background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
+        background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+      }
+      .thumbnail-milkyWay {
+        background: linear-gradient(to top, #ffa500 -80%, #0a2342 25%, #000 60%);
+      }
+      .thumbnail-rupaul {
+        background-color: black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .thumbnail-rupaul::after {
+        content: '';
+        display: block;
+        width: 60%;
+        height: 60%;
+        border-radius: 50%;
+        background-color: rgba(0,0,0,0.75);
+        box-shadow: 0 0 4px #483e51, 0 0 8px #483e51, 0 0 12px #483e51;
+      }
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react": "https://esm.sh/react@^19.1.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/"
+  }
+}
+</script>
+</head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

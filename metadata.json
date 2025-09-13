@@ -1,0 +1,5 @@
+{
+  "name": "React Moving Stars",
+  "description": "A visually captivating web application that recreates the 'Moving Stars in Universe' effect using React and Tailwind CSS. Stars emanate from the center of the screen, animating outwards against a beautiful cosmic backdrop, with no scrollbars for an immersive experience.",
+  "requestFramePermissions": []
+}
